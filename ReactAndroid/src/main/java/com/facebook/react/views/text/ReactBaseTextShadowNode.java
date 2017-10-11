@@ -120,7 +120,11 @@ public abstract class ReactBaseTextShadowNode extends LayoutShadowNode {
                 start, end, new BackgroundColorSpan(textShadowNode.mBackgroundColor)));
       }
       if (textShadowNode.mFontSize != UNSET) {
-        ops.add(new SetSpanOperation(start, end, new AbsoluteSizeSpan(textShadowNode.mFontSize)));
+        int fontSize = textShadowNode.mFontSize;
+        if (textShadowNode.mAdjustsFontSizeToFit) {
+          fontSize = Math.round(fontSize * textShadowNode.mFontScale);
+        }
+        ops.add(new SetSpanOperation(start, end, new AbsoluteSizeSpan(fontSize)));
       }
       if (textShadowNode.mFontStyle != UNSET
           || textShadowNode.mFontWeight != UNSET
@@ -153,9 +157,11 @@ public abstract class ReactBaseTextShadowNode extends LayoutShadowNode {
                     textShadowNode.mTextShadowColor)));
       }
       if (!Float.isNaN(textShadowNode.getEffectiveLineHeight())) {
-        ops.add(
-            new SetSpanOperation(
-                start, end, new CustomLineHeightSpan(textShadowNode.getEffectiveLineHeight())));
+        float lineHeight = textShadowNode.getEffectiveLineHeight();
+        if (textShadowNode.mAdjustsFontSizeToFit) {
+          lineHeight = lineHeight * textShadowNode.mFontScale;
+        }
+        ops.add(new SetSpanOperation(start, end, new CustomLineHeightSpan(lineHeight)));
       }
       ops.add(new SetSpanOperation(start, end, new ReactTagSpan(textShadowNode.getReactTag())));
     }
@@ -251,6 +257,10 @@ public abstract class ReactBaseTextShadowNode extends LayoutShadowNode {
   protected boolean mIsUnderlineTextDecorationSet = false;
   protected boolean mIsLineThroughTextDecorationSet = false;
   protected boolean mIncludeFontPadding = true;
+
+  protected boolean mAdjustsFontSizeToFit = false;
+  protected float mMinimumFontScale = UNSET;
+  protected float mFontScale = 1.0f;
 
   /**
    * mFontStyle can be {@link Typeface#NORMAL} or {@link Typeface#ITALIC}.
@@ -508,5 +518,17 @@ public abstract class ReactBaseTextShadowNode extends LayoutShadowNode {
       mTextShadowColor = textShadowColor;
       markUpdated();
     }
+  }
+
+  @ReactProp(name = ViewProps.ADJUSTS_FONT_SIZE_TO_FIT, defaultBoolean = false)
+  public void setAdjustsFontSizeToFit(boolean adjustsFontSizeToFit) {
+    mAdjustsFontSizeToFit = adjustsFontSizeToFit;
+    markUpdated();
+  }
+
+  @ReactProp(name = ViewProps.MINIMUM_FONT_SCALE, defaultFloat = UNSET)
+  public void setMinimumFontScale(float minimumFontScale) {
+    mMinimumFontScale = minimumFontScale;
+    markUpdated();
   }
 }

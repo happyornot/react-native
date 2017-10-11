@@ -387,13 +387,11 @@ const Text = createReactClass({
     accessible: PropTypes.bool,
     /**
      * Specifies whether font should be scaled down automatically to fit given style constraints.
-     * @platform ios
      */
     adjustsFontSizeToFit: PropTypes.bool,
 
     /**
      * Specifies smallest possible scale a font can reach when adjustsFontSizeToFit is enabled. (values 0.01-1.0).
-     * @platform ios
      */
     minimumFontScale: PropTypes.number,
     /**

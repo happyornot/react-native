@@ -9,6 +9,7 @@
 
 package com.facebook.react.views.text;
 
+import android.graphics.RectF;
 import android.os.Build;
 import android.text.BoringLayout;
 import android.text.Layout;
@@ -127,6 +128,19 @@ public class ReactTextShadowNode extends ReactBaseTextShadowNode {
             }
           }
 
+          if (mAdjustsFontSizeToFit && mFontSize != UNSET && (layout instanceof StaticLayout)) {
+            final RectF availableSpace = new RectF();
+            availableSpace.right = width;
+            availableSpace.bottom = height;
+
+            // Adjust font size when the layout is not single line with unknown or larger width.
+            mFontScale = scaleFont(mMinimumFontScale, 1.0f, (StaticLayout) layout, availableSpace);
+            mPreparedSpannableText = spannedFromShadowNode(ReactTextShadowNode.this, null);
+
+            // Generate layout again.
+            layout = copyLayoutPropertiesFrom(mPreparedSpannableText, (StaticLayout) layout, availableSpace);
+          }
+
           if (mNumberOfLines != UNSET &&
               mNumberOfLines < layout.getLineCount()) {
             return YogaMeasureOutput.make(
@@ -134,6 +148,56 @@ public class ReactTextShadowNode extends ReactBaseTextShadowNode {
                 layout.getLineBottom(mNumberOfLines - 1));
           } else {
             return YogaMeasureOutput.make(layout.getWidth(), layout.getHeight());
+          }
+        }
+
+        private float scaleFont(float start, float end, StaticLayout layout, RectF availableSpace) {
+          float best = start, lo = start, hi = end, mid;
+          while (lo <= hi) {
+            mid = (lo + hi) / 2.0f;
+            if (fontSizeFits(mid, layout, availableSpace)) {
+              best = lo;
+              lo = mid + 0.001f;
+            } else {
+              hi = mid - 0.001f;
+              best = hi;
+            }
+          }
+
+          return best;
+        }
+
+        private boolean fontSizeFits(float fontScale, StaticLayout layout, RectF availableSpace) {
+          // Set new scale, recreate text and layout using it.
+          ReactTextShadowNode.this.mFontScale = fontScale;
+
+          final Spannable spannable = spannedFromShadowNode(ReactTextShadowNode.this, null);
+          final Layout scaledLayout = copyLayoutPropertiesFrom(spannable, layout, availableSpace);
+
+          return (mNumberOfLines == UNSET || scaledLayout.getLineCount() <= mNumberOfLines)
+              && scaledLayout.getHeight() <= availableSpace.bottom;
+        }
+
+        private Layout copyLayoutPropertiesFrom(Spanned text, StaticLayout layout, RectF availableSpace) {
+          if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return new StaticLayout(
+              text,
+              layout.getPaint(),
+              Math.round(availableSpace.right),
+              layout.getAlignment(),
+              layout.getSpacingAdd(),
+              layout.getSpacingMultiplier(),
+              mIncludeFontPadding);
+          }
+          else {
+            return StaticLayout.Builder
+             .obtain(text, 0, text.length(), layout.getPaint(), Math.round(availableSpace.right))
+             .setAlignment(layout.getAlignment())
+             .setLineSpacing(layout.getSpacingAdd(), layout.getSpacingMultiplier())
+             .setIncludePad(mIncludeFontPadding)
+             .setBreakStrategy(mTextBreakStrategy)
+             .setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NORMAL)
+             .build();
           }
         }
       };

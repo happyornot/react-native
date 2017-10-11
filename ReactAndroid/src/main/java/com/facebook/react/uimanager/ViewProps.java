@@ -101,6 +101,9 @@ public class ViewProps {
   public static final String ALLOW_FONT_SCALING = "allowFontScaling";
   public static final String INCLUDE_FONT_PADDING = "includeFontPadding";
 
+  public static final String ADJUSTS_FONT_SIZE_TO_FIT = "adjustsFontSizeToFit";
+  public static final String MINIMUM_FONT_SCALE = "minimumFontScale";
+
   public static final String BORDER_WIDTH = "borderWidth";
   public static final String BORDER_LEFT_WIDTH = "borderLeftWidth";
   public static final String BORDER_START_WIDTH = "borderStartWidth";

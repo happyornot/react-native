@@ -217,6 +217,13 @@ public abstract class ReactBaseTextShadowNode extends LayoutShadowNode {
     return sb;
   }
 
+  protected void setFontScale(float fontScale) {
+    if (mFontScale != fontScale) {
+      mFontScale = fontScale;
+      markUpdated();
+    }
+  }
+
   /**
    * Return -1 if the input string is not a valid numeric fontWeight (100, 200, ..., 900), otherwise
    * return the weight.

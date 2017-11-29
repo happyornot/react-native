@@ -134,7 +134,8 @@ public class ReactTextShadowNode extends ReactBaseTextShadowNode {
             availableSpace.bottom = height;
 
             // Adjust font size when the layout is not single line with unknown or larger width.
-            mFontScale = scaleFont(mMinimumFontScale, 1.0f, (StaticLayout) layout, availableSpace);
+            final float fontScale = scaleFont(mMinimumFontScale, 1.0f, (StaticLayout) layout, availableSpace);
+            setFontScale(fontScale);
             mPreparedSpannableText = spannedFromShadowNode(ReactTextShadowNode.this, null);
 
             // Generate layout again.
